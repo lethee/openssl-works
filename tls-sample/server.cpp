@@ -16,7 +16,6 @@ using namespace std;
 class Server {
 	unsigned long ssl_err = 0;
 	SSL_CTX *ctx;
-	int port = 4433;
 	int sock = 0;
 
 public:
@@ -29,40 +28,38 @@ public:
 		}
 	}
 
-	void initCert() {
-		// Self-signed Certificate
-		// $ openssl req -x509 -nodes -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -subj “/C=US/ST=Oregon/L=Portland/O=Company Name/OU=Org/CN=www.example.com"
+	void initCert(const char *cert, const char *key) {
 		int res = 0;
 
-		res = SSL_CTX_use_certificate_file(ctx, "cert.pem", SSL_FILETYPE_PEM);
+		res = SSL_CTX_use_certificate_file(ctx, cert, SSL_FILETYPE_PEM);
 		if (res != 1) { cerr << res << " [Error] SSL_CTX_use_certificate_file" << endl; return; }
 
-		res = SSL_CTX_use_PrivateKey_file(ctx, "key.pem", SSL_FILETYPE_PEM);
+		res = SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_PEM);
 		if (res != 1) { cerr << res << " [Error] SSL_CTX_use_PrivateKey_file" << endl; return; }
 
 		res = SSL_CTX_check_private_key(ctx);
 		if (res != 1) { cerr << res << " [Error] SSL_CTX_check_private_key" << endl; return; }
 	}
 
-	void doListen() {
+	void doListen(int port) {
 		struct sockaddr_in addr;
 		bzero(&addr, sizeof(addr));
 
 		sock = socket(PF_INET, SOCK_STREAM, 0);
 
 		addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = INADDR_ANY;
+		addr.sin_port = htons(port);
+		addr.sin_addr.s_addr = INADDR_ANY;
 
-    if ( bind(sock, (struct sockaddr*)&addr, sizeof(addr)) != 0 ) {
-        perror("can't bind port");
-        return;
-    }
+		if ( bind(sock, (struct sockaddr*)&addr, sizeof(addr)) != 0 ) {
+			perror("can't bind port");
+			return;
+		}
 
-    if ( listen(sock, 10) != 0 ) {
-        perror("Can't configure listening port");
-        return;
-    }
+		if ( listen(sock, 10) != 0 ) {
+			perror("Can't configure listening port");
+			return;
+		}
 	}
 
 	void doRead() {
@@ -123,8 +120,8 @@ int main(int argc, char *argv[])
 
 	Server server;
 	server.initSSL();
-	server.initCert();
-	server.doListen();
+	server.initCert("cert.pem", "key.pem");
+	server.doListen(4433);
 	server.doRead();
 	server.doClose();
 
