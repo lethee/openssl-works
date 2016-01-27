@@ -90,6 +90,11 @@ public:
 			return;
 		}
 
+		const SSL_SESSION *session = SSL_get_session(ssl);
+		if (session != nullptr) {
+			SSL_SESSION_print_fp(stdout, session);
+		}
+
 		while (1) {
 			bytes = SSL_read(ssl, buf+bufidx, sizeof(buf)-bufidx);
 			if (bytes > 0) {
