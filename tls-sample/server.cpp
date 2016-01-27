@@ -85,7 +85,7 @@ public:
 		int bufidx = 0;
 		const char *payload = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 6\r\nConnection: close\r\n\r\nHello\n";
 
-		if (SSL_accept(ssl) == -1) {
+		if (SSL_accept(ssl) != 1) {
 			ERR_print_errors_fp(stderr);
 			return;
 		}
